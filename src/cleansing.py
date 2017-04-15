@@ -19,7 +19,7 @@ def clean_data(input_file, output_file):
                 link_index = text.find('{link}')
                 if link_index > -1:
                     text = text[:link_index] + text[link_index + 6:]
-                
+
                 for i in range(len(text)):
                     if text[i] in ['(', ')']:
                         continue
@@ -30,9 +30,44 @@ def clean_data(input_file, output_file):
                     filtered_text += text[i]
                 csv_writer.writerow([row[0], filtered_text] + row[4:9] + row[13:])
 
+def clean_data_txt(input_file, output_file):
+    input_txt = open(RES_PREFIX + input_file, 'r')
+    output_txt = open(RES_PREFIX + output_file, 'w')
+    rows = input_txt.readlines()
+    for row in rows:
+        columns = row.split('","')
+        text = columns[1].strip().lower()
+        filtered_text = ''
+
+        # Remove `mention` and `link` info
+        mention_index = text.find('@mention')
+        while mention_index > -1:
+            text = text[:mention_index] + text[mention_index + 8:]
+            mention_index = text.find('@mention')
+
+        link_index = text.find('{link}')
+        while link_index > -1:
+            text = text[:link_index] + text[link_index + 6:]
+            link_index = text.find('{link}')
+
+        for i in range(len(text)):
+            if text[i] in ['(', ')']:
+                continue
+            if text[i] == ' ' and len(filtered_text) > 0 and filtered_text[-1] == ' ':
+                continue
+            if text[i] in [',', '.', ':', ';'] and i < len(text) - 1 and text[i + 1] == ' ':
+                continue
+            filtered_text += text[i]
+
+        output_txt.write(filtered_text.strip() + '\n')
+
+
+    output_txt.close()
+    input_txt.close()
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print 'Running Format: python cleansing.py [inputfile] [outputfile]'
         sys.exit()
     input_file, output_file = sys.argv[1], sys.argv[2]
-    clean_data(input_file, output_file)
+    clean_data_txt(input_file, output_file)
