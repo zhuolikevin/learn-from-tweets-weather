@@ -1,4 +1,3 @@
-from sets import Set
 import nltk
 
 # put words into set to eliminate duplicates
@@ -26,7 +25,7 @@ for feature in feature_set:
     feature_table[feature] = count
     count += 1
 
-# run through training text and create feature vector 
+# run through training text and create feature vector
 
 with open('../res/cleaned_train.txt') as f_in:
     f_out = open("../res/x_training.txt", "w")
@@ -34,7 +33,7 @@ with open('../res/cleaned_train.txt') as f_in:
     for line in f_in:
         vector = [0] * count
 
-        tokens = nltk.word_tokenize(line)  
+        tokens = nltk.word_tokenize(line)
         for token in tokens:
             index = feature_table.get(token)
             if index != None:
