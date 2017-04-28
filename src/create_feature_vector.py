@@ -4,7 +4,7 @@ import nltk
 
 feature_set = set()
 
-with open('../res/selected_words.txt') as fp:
+with open('../res/selected_words_with_pn.txt') as fp:
     for line in fp:
         feature_set.add(line.split(',', 1)[0])
 
@@ -25,10 +25,12 @@ for feature in feature_set:
     feature_table[feature] = count
     count += 1
 
+print count
+
 # run through training text and create feature vector
 
-with open('../res/cleaned_train.txt') as f_in:
-    f_out = open("../res/x_training.txt", "w")
+with open('../res/cleaned_test.txt') as f_in:
+    f_out = open("../res/x_testing.txt", "w")
 
     for line in f_in:
         vector = [0] * count

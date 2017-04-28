@@ -31,6 +31,12 @@ def clean_data(input_file, output_file):
                 csv_writer.writerow([row[0], filtered_text] + row[4:9] + row[13:])
 
 def clean_data_txt(input_file, output_file):
+    '''
+    1. lowercases
+    2. remove `@mention`
+    3. remove `{link}`
+    4. remove (),.:;
+    '''
     input_txt = open(RES_PREFIX + input_file, 'r')
     output_txt = open(RES_PREFIX + output_file, 'w')
     rows = input_txt.readlines()
