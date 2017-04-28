@@ -77,7 +77,7 @@ def main(output_file=None):
     print '#3 RMSE %f' % rmse(Y_test, out3)
     print '#4 RMSE %f' % rmse(Y_test, out4)
 
-    out = np.hstack(((os1+os2+os4+os5)/4,(ow1+ow2+ow4+ow5)/4,(ok1+ok2+ok4+ok5)/4))
+    out = np.hstack(((os1+os2+os3+os4)/4,(ow1+ow2+ow3+ow4)/4,(ok1+ok2+ok3+ok4)/4))
     print 'Average RMSE %f' % rmse(Y_test, out)
 
     if output_file:
