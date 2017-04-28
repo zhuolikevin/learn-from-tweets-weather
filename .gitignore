@@ -1,5 +1,4 @@
 .DS_Store
-x_training.txt
-x_testing.txt
-/data
-x_training_10000.txt
+new_test.csv
+new_train.csv
+output*.csv
