@@ -70,18 +70,19 @@ def main(output_file=None):
     out2 = np.hstack((os2, ow2, ok2))
     out3 = np.hstack((os3, ow3, ok3))
     out4 = np.hstack((os4, ow4, ok4))
-
-    print '========== Summary =========='
-    print '#1 RMSE %f' % rmse(Y_test, out1)
-    print '#2 RMSE %f' % rmse(Y_test, out2)
-    print '#3 RMSE %f' % rmse(Y_test, out3)
-    print '#4 RMSE %f' % rmse(Y_test, out4)
-
     out = np.hstack(((os1+os2+os3+os4)/4,(ow1+ow2+ow3+ow4)/4,(ok1+ok2+ok3+ok4)/4))
-    print 'Average RMSE %f' % rmse(Y_test, out)
 
     if output_file:
         write(list(out), output_file)
+    else:
+        print '========== Summary =========='
+        print '#1 RMSE %f' % rmse(Y_test, out1)
+        print '#2 RMSE %f' % rmse(Y_test, out2)
+        print '#3 RMSE %f' % rmse(Y_test, out3)
+        print '#4 RMSE %f' % rmse(Y_test, out4)
+        print 'Average RMSE %f' % rmse(Y_test, out)
+
+    print 'Done!'
 
 def clean(data):
     '''

@@ -28,5 +28,5 @@
 - Use the following command to generate output for Kaggle
 
   ```bash
-  $ python src/main.py res/output.csv
+  $ python src/main.py ../res/output.csv
   ```
