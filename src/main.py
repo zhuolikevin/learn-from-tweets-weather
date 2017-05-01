@@ -8,6 +8,7 @@ from nltk.stem import LancasterStemmer
 from nltk import wordpunct_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.linear_model import Ridge
+from sklearn.ensemble import RandomForestRegressor
 import sklearn.preprocessing as prep
 
 class LancasterTokenizer(object):
@@ -58,19 +59,15 @@ def main(output_file=None):
 
     print 'Training and predicting...'
     print '>>> Feature #1'
-    os1, ow1, ok1 = trainModels(X_1, ys, yw, yk, train_len, ys_test, yw_test, yk_test)
+    out1 = trainModels(X_1, ys, yw, yk, train_len, ys_test, yw_test, yk_test)
     print '>>> Feature #2'
-    os2, ow2, ok2 = trainModels(X_2, ys, yw, yk, train_len, ys_test, yw_test, yk_test)
+    out2 = trainModels(X_2, ys, yw, yk, train_len, ys_test, yw_test, yk_test)
     print '>>> Feature #3'
-    os3, ow3, ok3 = trainModels(X_3, ys, yw, yk, train_len, ys_test, yw_test, yk_test)
+    out3 = trainModels(X_3, ys, yw, yk, train_len, ys_test, yw_test, yk_test)
     print '>>> Feature #4'
-    os4, ow4, ok4 = trainModels(X_4, ys, yw, yk, train_len, ys_test, yw_test, yk_test)
+    out4 = trainModels(X_4, ys, yw, yk, train_len, ys_test, yw_test, yk_test)
 
-    out1 = np.hstack((os1, ow1, ok1))
-    out2 = np.hstack((os2, ow2, ok2))
-    out3 = np.hstack((os3, ow3, ok3))
-    out4 = np.hstack((os4, ow4, ok4))
-    out = np.hstack(((os1+os2+os3+os4)/4,(ow1+ow2+ow3+ow4)/4,(ok1+ok2+ok3+ok4)/4))
+    out = (out1+out2+out3+out4)/4
 
     if output_file:
         write(list(out), output_file)
@@ -138,34 +135,78 @@ def trainModels(X_all, ys, yw, yk, train_len, ys_test=None, yw_test=None, yk_tes
     X = X_all[:train_len]
     X_test = X_all[train_len:]
 
+    y = np.hstack((np.array(ys), np.array(yw), np.array(yk)))
+    y_test = np.hstack((np.array(ys_test), np.array(yw_test), np.array(yk_test)))
+
+
     print '----- Training `s` labels -----'
-    outs = ridge(X, ys, X_test, ys_test)
-    outs = np.clip(outs, 0, 1)
-    outs = prep.normalize(outs, norm='l1')
+    outs_t, outs_p = ridge(X, ys, X_test, ys_test)
+    #outs_p = np.clip(outs_p, 0, 1)
+    #outs_p = prep.normalize(outs_p, norm='l1')
 
     print '----- Training `w` labels -----'
-    outw = ridge(X, yw, X_test, yw_test)
-    outw = prep.normalize(outw, norm='l1')
-    outw = np.clip(outw, 0, 1)
+    outw_t, outw_p = ridge(X, yw, X_test, yw_test)
+    #outw_p = prep.normalize(outw_p, norm='l1')
+    #outw_p = np.clip(outw_p, 0, 1)
 
     print '----- Training `k` labels -----'
-    outk = ridge(X, yk, X_test, yk_test)
-    outk = np.clip(outk, 0, 1)
+    outk_t, outk_p = ridge(X, yk, X_test, yk_test)
+    #outk_p = np.clip(outk_p, 0, 1)
 
-    return outs,outw,outk
+    out_t = np.hstack((outs_t, outw_t, outk_t))
+    out_p = np.hstack((outs_p, outw_p, outk_p))
+
+    second_out_t, second_out_p = ridge(out_t, y, out_p)
+    #second_out_t, second_out_p = randomForest(out_t, y, out_p, y_test)
+
+    outs = np.clip(second_out_p[:,0:5], 0, 1)
+    outs = prep.normalize(outs, norm='l1')
+
+    outw = np.clip(second_out_p[:,5:9], 0, 1)
+    outw = prep.normalize(outw, norm='l1')
+    
+    outk = np.clip(second_out_p[:,9:24], 0, 1)
+
+    out = np.hstack((outs, outw, outk))
+
+    return out
 
 def ridge(X, Y, X_test, Y_test=None):
+
     '''
     Train and predict with Ridge
     '''
     ri = Ridge(alpha=1,tol=0.001,solver='auto',fit_intercept=True)
     ri.fit(X, Y)
-    predictions = ri.predict(X_test)
+    training = ri.predict(X)
+    prediction = ri.predict(X_test)
+
+    print 'Training RMSE %f' % rmse(Y, training)
 
     if Y_test != None:
-        print 'Group RMSE %f' % rmse(Y_test, predictions)
+        print 'Group RMSE %f' % rmse(Y_test, prediction)
 
-    return np.array(predictions)
+    return np.array(training),np.array(prediction)
+
+
+def randomForest(X, Y, X_test, Y_test=None):
+    
+    '''
+    Train and predict with RF
+    '''
+
+    rf = RandomForestRegressor(max_depth = 20, n_estimators = 100, max_features = 100, n_jobs = 6)
+    rf.fit(X, Y)
+    training = rf.predict(X)
+    prediction = rf.predict(X_test)
+
+    print 'Training RMSE %f' % rmse(Y, training)
+
+    if Y_test != None:
+        print 'Group RMSE %f' % rmse(Y_test, prediction)
+
+    return np.array(training),np.array(prediction)
+
 
 def write(pred, output_file):
     '''
